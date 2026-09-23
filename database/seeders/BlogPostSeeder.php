@@ -1,0 +1,245 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\BlogPost;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+
+class BlogPostSeeder extends Seeder
+{
+    public function run(): void
+    {
+        /*
+         * Les 12 articles du blog KMAA (issus du contenu statique Angular).
+         * updateOrCreate sur 'slug' → le seeder est ré-exécutable sans doublons.
+         */
+
+        $posts = [
+            [
+                'slug' => 'gestion-tresorerie-indicateurs',
+                'title' => 'Gestion de trésorerie : les indicateurs financiers que tout dirigeant devrait suivre',
+                'excerpt' => 'Trésorerie nette, BFR, capacité d’autofinancement et cash-flow : découvrez les indicateurs essentiels pour piloter la santé financière d’une entreprise.',
+                'category' => 'finance',
+                'kind' => 'article',
+                'image' => 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1400&q=85',
+                'image_alt' => 'Analyse financière et gestion de trésorerie',
+                'author_name' => 'Issouf Ouédraogo',
+                'author_role' => 'Expert financier',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=12',
+                'read_time' => 9,
+                'featured' => true,
+                'popular' => true,
+                'tags' => ['trésorerie', 'finance', 'PME', 'gestion financière'],
+                'level' => 'Intermédiaire',
+                'audience' => 'Dirigeants & PME',
+                'published_at' => '2026-09-03',
+            ],
+            [
+                'slug' => 'guide-tva',
+                'title' => 'Guide pratique de la TVA : comprendre, calculer et préparer sa déclaration',
+                'excerpt' => 'Un parcours structuré pour comprendre la logique de la TVA, organiser ses pièces et éviter les erreurs courantes avant la déclaration.',
+                'category' => 'fiscalite',
+                'kind' => 'guide',
+                'image' => 'https://images.unsplash.com/photo-1554224154-22dec7ec8818?w=1200&q=85',
+                'image_alt' => 'Documents fiscaux et calculatrice',
+                'author_name' => 'Équipe KMAA',
+                'author_role' => 'Pôle fiscalité',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=8',
+                'read_time' => 14,
+                'popular' => true,
+                'tags' => ['TVA', 'déclaration', 'fiscalité', 'entreprise'],
+                'level' => 'Débutant',
+                'audience' => 'Entrepreneurs & comptables',
+                'published_at' => '2026-09-02',
+            ],
+            [
+                'slug' => 'missions-expert-comptable-pme',
+                'title' => 'Expert-comptable : quelles sont réellement ses missions auprès d’une PME ?',
+                'excerpt' => 'Bien plus qu’un producteur d’états financiers, l’expert-comptable peut devenir un véritable partenaire stratégique du dirigeant.',
+                'category' => 'comptabilite',
+                'kind' => 'article',
+                'image' => 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1000&q=85',
+                'image_alt' => 'Expert-comptable travaillant sur les comptes d’une entreprise',
+                'author_name' => 'Fatou Zongo',
+                'author_role' => 'Experte-comptable',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=45',
+                'read_time' => 7,
+                'popular' => true,
+                'tags' => ['expert-comptable', 'comptabilité', 'PME'],
+                'audience' => 'PME',
+                'published_at' => '2026-09-01',
+            ],
+            [
+                'slug' => 'rentree-fiscale-checklist',
+                'title' => 'Rentrée fiscale : 7 points à vérifier dans votre organisation avant la prochaine échéance',
+                'excerpt' => 'Une synthèse opérationnelle pour remettre à niveau vos dossiers, responsabilités internes et preuves documentaires.',
+                'category' => 'fiscalite',
+                'kind' => 'actualite',
+                'image' => 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1000&q=85',
+                'image_alt' => 'Documents administratifs et stylo',
+                'author_name' => 'Aïcha Ouédraogo',
+                'author_role' => 'Consultante fiscale',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=47',
+                'read_time' => 6,
+                'tags' => ['actualité', 'échéances', 'organisation'],
+                'audience' => 'Entreprises',
+                'published_at' => '2026-08-31',
+            ],
+            [
+                'slug' => 'lire-bilan-comptable',
+                'title' => 'Lire un bilan comptable : méthode simple pour comprendre la situation financière d’une entreprise',
+                'excerpt' => 'Actif, passif, capitaux propres, dettes : apprenez à lire un bilan comptable sans être vous-même comptable.',
+                'category' => 'comptabilite',
+                'kind' => 'guide',
+                'image' => 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=1000&q=85',
+                'image_alt' => 'Documents comptables et analyse financière',
+                'author_name' => 'Moussa Coulibaly',
+                'author_role' => 'Formateur en comptabilité',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=15',
+                'read_time' => 8,
+                'popular' => true,
+                'tags' => ['bilan', 'comptabilité', 'analyse financière'],
+                'level' => 'Débutant',
+                'audience' => 'Étudiants & dirigeants',
+                'published_at' => '2026-08-29',
+            ],
+            [
+                'slug' => 'obligations-fiscales-entreprise',
+                'title' => 'Fiscalité d’entreprise : les principales obligations à connaître en tant que dirigeant',
+                'excerpt' => 'Déclarations, échéances, obligations comptables et fiscales : les fondamentaux à maîtriser pour éviter les mauvaises surprises.',
+                'category' => 'fiscalite',
+                'kind' => 'guide',
+                'image' => 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1000&q=85',
+                'image_alt' => 'Documents fiscaux et calculs financiers',
+                'author_name' => 'Aïcha Ouédraogo',
+                'author_role' => 'Consultante fiscale',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=47',
+                'read_time' => 10,
+                'tags' => ['fiscalité', 'entreprise', 'impôts'],
+                'level' => 'Débutant',
+                'audience' => 'Dirigeants',
+                'published_at' => '2026-08-27',
+            ],
+            [
+                'slug' => 'controle-gestion-performance',
+                'title' => 'Contrôle de gestion : comment transformer les chiffres en décisions stratégiques',
+                'excerpt' => 'Le contrôle de gestion permet au dirigeant de comprendre ce qui fonctionne, ce qui coûte et où concentrer ses efforts.',
+                'category' => 'gestion',
+                'kind' => 'article',
+                'image' => 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1000&q=85',
+                'image_alt' => 'Réunion de travail et analyse des performances',
+                'author_name' => 'Boureima Sawadogo',
+                'author_role' => 'Consultant en gestion',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=33',
+                'read_time' => 8,
+                'tags' => ['contrôle de gestion', 'performance', 'KPI'],
+                'audience' => 'Managers',
+                'published_at' => '2026-08-25',
+            ],
+            [
+                'slug' => 'audit-financier-entreprise',
+                'title' => 'Audit financier : pourquoi une entreprise devrait-elle faire contrôler ses comptes ?',
+                'excerpt' => 'L’audit ne se limite pas à rechercher des erreurs. Il contribue aussi à renforcer la fiabilité de l’information financière.',
+                'category' => 'audit',
+                'kind' => 'article',
+                'image' => 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1000&q=85',
+                'image_alt' => 'Réunion autour de documents financiers',
+                'author_name' => 'David Kaboré',
+                'author_role' => 'Auditeur financier',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=51',
+                'read_time' => 7,
+                'tags' => ['audit', 'contrôle', 'finance'],
+                'audience' => 'Entreprises',
+                'published_at' => '2026-08-22',
+            ],
+            [
+                'slug' => 'business-plan-financier',
+                'title' => 'Business plan financier : les chiffres indispensables avant de lancer son entreprise',
+                'excerpt' => 'Prévisions de chiffre d’affaires, charges, investissement, trésorerie et rentabilité : construisez un modèle financier cohérent.',
+                'category' => 'entreprise',
+                'kind' => 'guide',
+                'image' => 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1000&q=85',
+                'image_alt' => 'Tableau financier et stratégie d’entreprise',
+                'author_name' => 'Aminata Kaboré',
+                'author_role' => 'Consultante entreprise',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=20',
+                'read_time' => 11,
+                'tags' => ['business plan', 'entrepreneuriat', 'finance'],
+                'level' => 'Intermédiaire',
+                'audience' => 'Entrepreneurs',
+                'published_at' => '2026-08-20',
+            ],
+            [
+                'slug' => 'ratios-financiers',
+                'title' => '10 ratios financiers à connaître pour analyser la performance d’une entreprise',
+                'excerpt' => 'Rentabilité, liquidité, solvabilité et structure financière : les ratios qui permettent de mieux interpréter les comptes.',
+                'category' => 'finance',
+                'kind' => 'guide',
+                'image' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&q=85',
+                'image_alt' => 'Graphiques et analyse financière',
+                'author_name' => 'Issouf Ouédraogo',
+                'author_role' => 'Expert financier',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=12',
+                'read_time' => 12,
+                'popular' => true,
+                'tags' => ['ratios', 'finance', 'analyse'],
+                'level' => 'Intermédiaire',
+                'audience' => 'Analystes & dirigeants',
+                'published_at' => '2026-08-18',
+            ],
+            [
+                'slug' => 'carriere-expertise-comptable',
+                'title' => 'Devenir expert-comptable : compétences, parcours et réalités du métier',
+                'excerpt' => 'Le métier évolue rapidement. Découvrez les compétences techniques et humaines recherchées dans les métiers de la comptabilité.',
+                'category' => 'carriere',
+                'kind' => 'conseil',
+                'image' => 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1000&q=85',
+                'image_alt' => 'Professionnels travaillant dans un bureau',
+                'author_name' => 'Équipe KMAA',
+                'author_role' => 'KMAA Academy',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=8',
+                'read_time' => 6,
+                'tags' => ['carrière', 'comptabilité', 'expertise'],
+                'audience' => 'Étudiants & professionnels',
+                'published_at' => '2026-08-15',
+            ],
+            [
+                'slug' => 'formation-continue-finance',
+                'title' => 'Pourquoi se former régulièrement aux métiers de la finance et de la comptabilité ?',
+                'excerpt' => 'Normes, outils numériques, fiscalité et pratiques professionnelles évoluent. La formation continue devient un véritable avantage compétitif.',
+                'category' => 'formation',
+                'kind' => 'conseil',
+                'image' => 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1000&q=85',
+                'image_alt' => 'Formation professionnelle en comptabilité',
+                'author_name' => 'M. Martial YAOGO',
+                'author_role' => 'Formateur KMAA',
+                'author_avatar' => 'https://i.pravatar.cc/100?img=11',
+                'read_time' => 6,
+                'tags' => ['formation', 'finance', 'comptabilité'],
+                'audience' => 'Professionnels',
+                'published_at' => '2026-08-12',
+            ],
+        ];
+
+        $adminId = \App\Models\User::query()->value('id'); // auteur technique par défaut
+
+        foreach ($posts as $post) {
+            BlogPost::updateOrCreate(
+                ['slug' => $post['slug']],
+                [
+                    ...$post,
+                    // Contenu complet : placeholder éditable ensuite dans Filament
+                    'content' => $post['excerpt'] . "\n\n"
+                        . "Cet article approfondit les points clés du sujet et vous guide "
+                        . "pas à pas vers une mise en pratique concrète. Le contenu détaillé "
+                        . "peut être enrichi directement depuis le panneau d'administration.",
+                    'author_id'  => $adminId,
+                    'published'  => true,
+                ]
+            );
+        }
+
+        $this->command->info('✅ ' . count($posts) . ' articles de blog seedés.');
+    }
+}
