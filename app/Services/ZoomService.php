@@ -63,8 +63,10 @@ class ZoomService
             'timezone'   => 'Africa/Ouagadougou',
             'settings'   => [
                 'host_video'        => true,
+                'auto_recording' => 'cloud', // ✅ Enregistrement automatique sur le cloud Zoom
                 'participant_video' => true,
                 'join_before_host'  => false,
+                'auto_recording' => 'cloud',
                 'mute_upon_entry'   => true,
                 'waiting_room'      => false,
                 'auto_recording'    => 'none',

@@ -29,10 +29,29 @@ class AssignmentSubmissionController extends Controller
             ], 403);
         }
 
+        // Seuls ces types de séquences acceptent un dépôt
+if (! in_array($sequence->type, ['devoir', 'tp', 'td', 'cas_pratique'], true)) {
+    return response()->json(['message' => 'Cette séquence n\'accepte pas de dépôt.'], 422);
+}
+
+// Cas pratique : le formateur peut avoir désactivé le dépôt de fichiers
+if ($sequence->type === 'cas_pratique' && ! $sequence->allow_file_upload) {
+    return response()->json(['message' => 'Le dépôt de fichiers est désactivé pour ce cas pratique.'], 403);
+}
+
+// Date limite dépassée
+if ($sequence->deadline && now()->greaterThan($sequence->deadline)) {
+    return response()->json(['message' => 'La date limite de rendu est dépassée.'], 403);
+}
+
+        // $data = $request->validate([
+        //     'file'    => ['required', 'file', 'mimes:pdf,doc,docx,zip', 'max:10240'],
+        //     'comment' => ['nullable', 'string', 'max:2000'],
+        // ]);
         $data = $request->validate([
-            'file'    => ['required', 'file', 'mimes:pdf,doc,docx,zip', 'max:10240'],
-            'comment' => ['nullable', 'string', 'max:2000'],
-        ]);
+    'file'    => ['required', 'file', 'mimes:pdf,doc,docx,zip,xls,xlsx,ppt,pptx', 'max:20480'],
+    'comment' => ['nullable', 'string', 'max:2000'],
+]);
 
         // ✅ Chemin RELATIF au disque (règle établie — jamais d'URL absolue)
         $filePath = $request->file('file')->store(

@@ -28,6 +28,9 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\PresentialTrainingApiController;   
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\PromoController;
+use App\Http\Controllers\Api\EnterpriseLicenseController;
+use App\Http\Controllers\Api\EnterpriseLicenseMemberController;
 
 // ============================================================
 // AUTHENTIFICATION
@@ -60,6 +63,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/formateur/courses',          [FormateurCourseController::class, 'store']);
     Route::patch('/formateur/courses/{course}',  [FormateurCourseController::class, 'update']);
     Route::delete('/formateur/courses/{course}', [FormateurCourseController::class, 'destroy']);
+
+    Route::get('/formateur/dashboard', [\App\Http\Controllers\Api\InstructorDashboardController::class, 'index']);
 
 
     // --------------------------------------------------------
@@ -117,7 +122,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sequences/{sequenceId}/complete', [ProgressController::class, 'complete']);
 
     // route pour la progression
-    Route::get('/courses/{slug}/enrollment-progress', [ProgressController::class, 'show']);
+    // Route::get('/courses/{slug}/enrollment-progress', [ProgressController::class, 'show']);
+    Route::get('/courses/{slugOrId}/enrollment-progress', [ProgressController::class, 'show']);
 
     // route pour les apis de live en direct avec jitsi meet
     // DANS le groupe auth:sanctum :
@@ -206,6 +212,67 @@ Route::post('/notifications/read-all', [NotificationController::class, 'markAllR
 
 
 
+// """"""""""""""""""""""""""" les routes des cours d'entreprises
+
+Route::get('/me/enterprise-licenses', [EnterpriseLicenseController::class, 'myLicenses']);
+Route::post('/enterprise-licenses', [EnterpriseLicenseController::class, 'store']);
+Route::get('/enterprise-licenses/access/check', [EnterpriseLicenseController::class, 'access']);
+Route::get('/enterprise-licenses/{uuid}', [EnterpriseLicenseController::class, 'show']);
+
+
+//""""""""""""""""""""" routes de verifications des licences des inscrits
+Route::get   ('/enterprise-licenses/{uuid}/members',                  [EnterpriseLicenseMemberController::class, 'index']);
+Route::post  ('/enterprise-licenses/{uuid}/members',                  [EnterpriseLicenseMemberController::class, 'store']);
+Route::delete('/enterprise-licenses/{uuid}/members/{memberId}',       [EnterpriseLicenseMemberController::class, 'destroy']);
+Route::post  ('/enterprise-licenses/{uuid}/members/{memberId}/resend',[EnterpriseLicenseMemberController::class, 'resend']);
+
+
+// route de paiement pour les cours individuels
+Route::get('/orders/{uuid}', [\App\Http\Controllers\Api\OrderController::class, 'show']);
+Route::get('/me/orders', [\App\Http\Controllers\Api\OrderController::class, 'myOrders']);
+
+// routes pour le feedback des users
+Route::post('/sequences/{sequence}/feedback', [ProgressController::class, 'feedback']);
+
+
+// import de l'avatar du formateur 
+ Route::post('/auth/avatar', [AuthController::class, 'updateAvatar']);
+
+
+ // route pour la programmation des meets cotés formateurs 
+Route::post('/formateur/courses/{courseId}/live/schedule', [LiveSessionController::class, 'scheduleMany']);
+
+
+// Formateur : voir ses programmations pour un cours
+Route::get('/formateur/courses/{courseId}/live/schedules', [LiveSessionController::class, 'getSchedules']);
+
+// Apprenant : voir les programmations de son cours
+Route::get('/live-sessions/{courseId}/schedules', [LiveSessionController::class, 'getSchedules']);
+
+// routes pour les seances programmées
+    // À ajouter à côté des autres routes de LiveSession
+    Route::get('/formateur/live/upcoming-schedules', [LiveSessionController::class, 'upcomingSchedules']);
+
+    // nouvelles routes pour les seances programmées via l'enregistrement des seances meets
+
+    // Route::post('/webhooks/zoom', [\App\Http\Controllers\Api\ZoomWebhookController::class, 'handle']);
+
+
+
+    Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::patch('/auth/password', [AuthController::class, 'updatePassword']);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -275,6 +342,17 @@ Schedule::call(function () {
 
 // PUBLIC — Formules de prix
 Route::get('/pricing-plans', [PricingPlanController::class, 'index']);
+
+
+// Formules entreprise (public)
+Route::get('/enterprise/plans', [EnterpriseLicenseController::class, 'plans']);
+
+// Codes promo — public (utilisé dans le devis)
+Route::post('/promo/validate', [\App\Http\Controllers\Api\PromoController::class, 'validate']);
+
+//"""""""""""""""""""""""""""""""""""""""""""
+// route pour l'enregistrement et le stockage des seances meets
+Route::post('/webhooks/zoom', [\App\Http\Controllers\Api\ZoomWebhookController::class, 'handle']);
 
 
 

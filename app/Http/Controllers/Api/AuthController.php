@@ -43,34 +43,6 @@ public function __construct(
         ], 201);
     }
 
-    // public function login(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'email' => ['required', 'email'],
-    //         'password' => ['required'],
-    //     ]);
-
-    //     $user = User::where('email', $validated['email'])->first();
-
-    //     if (! $user || ! Hash::check($validated['password'], $user->password)) {
-    //         return response()->json([
-    //             'message' => 'Identifiants incorrects.',
-    //         ], 401);
-    //     }
-
-    //     if (! $user->is_active) {
-    //         return response()->json([
-    //             'message' => 'Ce compte a été désactivé. Contactez l\'administration.',
-    //         ], 403);
-    //     }
-
-    //     $token = $user->createToken('kmaa-app')->plainTextToken;
-
-    //     return response()->json([
-    //         'user' => $this->formatUser($user),
-    //         'token' => $token,
-    //     ]);
-    // }
 
      public function login(Request $request)
     {
@@ -175,4 +147,64 @@ public function __construct(
             'role' => $user->getRoleNames()->first(), // 'admin' | 'formateur' | 'apprenant'
         ];
     }
+
+
+        public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Max 2MB
+        ]);
+
+        $user = $request->user();
+
+        // Supprimer l'ancien avatar s'il existe
+        if ($user->avatar) {
+            \Storage::disk('public')->delete($user->avatar);
+        }
+
+        // Enregistrer le nouveau
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $user->update(['avatar' => $path]);
+
+        return response()->json([
+            'user' => $this->formatUser($user),
+        ]);
+    }
+    public function updateProfile(Request $request)
+{
+    $user = $request->user();
+    
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+    ]);
+    
+    $user->update($validated);
+    
+    return response()->json([
+        'user' => $this->formatUser($user),
+    ]);
+}
+
+public function updatePassword(Request $request)
+{
+    $user = $request->user();
+    
+    $validated = $request->validate([
+        'current_password' => 'required',
+        'new_password' => 'required|string|min:6',
+    ]);
+    
+    if (!\Hash::check($validated['current_password'], $user->password)) {
+        return response()->json([
+            'message' => 'Le mot de passe actuel est incorrect.',
+        ], 422);
+    }
+    
+    $user->update([
+        'password' => \Hash::make($validated['new_password']),
+    ]);
+    
+    return response()->json(['message' => 'Mot de passe mis à jour.']);
+}
 }

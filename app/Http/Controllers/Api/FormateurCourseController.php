@@ -13,102 +13,80 @@ class FormateurCourseController extends Controller
     // CRÉATION — POST /api/formateur/courses
     // ========================================================
 
-    public function store(Request $request)
-    {
-        $user = $request->user();
+public function store(Request $request)
+{
+    $user = $request->user();
 
-        $data = $request->validate([
-            'title'             => ['required', 'string', 'min:3', 'max:255'],
-            'subject'           => ['nullable', 'string', 'max:255'],
-            'category'          => ['nullable', 'string', 'max:255'],
-            'level'             => ['nullable', 'string', 'max:255'],
-            'diploma'           => ['nullable', 'string', 'max:255'],
-            'durationFull'      => ['nullable', 'string', 'max:255'],
-            'durationAlternance'=> ['nullable', 'string', 'max:255'],
-            'description'       => ['nullable', 'string', 'max:5000'],
-            'image'             => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            
-        ]);
+    $data = $request->validate([
+        'title'             => ['required', 'string', 'min:3', 'max:255'],
+        'subject'           => ['nullable', 'string', 'max:255'],
+        'category'          => ['nullable', 'string', 'max:255'],
+        'level'             => ['nullable', 'string', 'max:255'],
+        'diploma'           => ['nullable', 'string', 'max:255'],
+        'durationFull'      => ['nullable', 'string', 'max:255'],
+        'durationAlternance'=> ['nullable', 'string', 'max:255'],
+        'description'       => ['nullable', 'string', 'max:5000'],
+        'image'             => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
 
-        // Slug unique depuis le titre
-        $slug = Str::slug($data['title']);
-        $i = 1;
-        while (Course::where('slug', $slug)->exists()) {
-            $slug = Str::slug($data['title']) . '-' . (++$i);
-        }
+        'type'              => ['nullable', 'in:individual,enterprise'],
+        'price'             => ['nullable', 'integer', 'min:0'],
+        'enterprise_base_price' => ['nullable', 'integer', 'min:0'],
+        'delivery_mode'     => ['nullable', 'in:en_ligne,presentiel,mixte'],
+        'hours_per_week'    => ['nullable', 'string', 'max:20'],
+    ]);
 
-        // Image de couverture
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('courses', 'public');
-            $data['image'] = '/storage/' . $path;
-        }
-
-        $course = Course::create([
-            'title'    => $data['title'],
-            'slug'     => $slug,
-            'subject'  => $data['subject'] ?? null,
-            'category' => $data['category'] ?? null,
-            'level'    => $data['level'] ?? null,
-            'diploma'  => $data['diploma'] ?? null,
-            // ⚠️ ADAPTE selon tes colonnes SQL (snake_case ?)
-            'duration_full'        => $data['durationFull'] ?? null,
-            'duration_alternance'  => $data['durationAlternance'] ?? null,
-            'description'          => $data['description'] ?? null,
-            'image'                => $data['image'] ?? null,
-
-            // ⚠️ ADAPTE : formateur_id OU user_id (voir CourseController@myCourses)
-            // 'formateur_id' => $user->id,
-            'instructor_id' => $user->id,
-        ]);
-
-        return response()->json([
-            'message' => 'Cours créé avec succès.',
-            'data' => [
-                'id'    => $course->id,
-                'slug'  => $course->slug,
-                'title' => $course->title,
-            ],
-        ], 201);
+    $slug = Str::slug($data['title']);
+    $i = 1;
+    while (Course::where('slug', $slug)->exists()) {
+        $slug = Str::slug($data['title']) . '-' . (++$i);
     }
 
+    $imagePath = null;
+    if ($request->hasFile('image')) {
+        $imagePath = '/storage/' . $request->file('image')->store('courses', 'public');
+    }
+
+    $type = $data['type'] ?? 'individual';
+
+    $course = Course::create([
+        'title'                 => $data['title'],
+        'slug'                  => $slug,
+        'type'                  => $type,
+        'subject'               => $data['subject'] ?? null,
+        'category'              => $data['category'] ?? null,
+        'level'                 => $data['level'] ?? null,
+        'diploma'               => $data['diploma'] ?? 'certificate',
+        'duration_full'         => $data['durationFull'] ?? null,
+        'duration_alternance'   => $data['durationAlternance'] ?? null,
+        'description'           => $data['description'] ?? null,
+        'image'                 => $imagePath,
+        'instructor_id'         => $user->id,
+        'has_certificate'       => true,
+
+        // ✅ Spécifique individuel
+        'price'                 => $type === 'individual' ? ($data['price'] ?? 0) : 0,
+        'is_free'               => $type === 'individual' ? (($data['price'] ?? 0) === 0) : false,
+
+        // ✅ Spécifique entreprise
+        'enterprise_base_price' => $type === 'enterprise' ? ($data['enterprise_base_price'] ?? 0) : null,
+        'delivery_mode'         => $type === 'enterprise' ? ($data['delivery_mode'] ?? 'en_ligne') : null,
+        'hours_per_week'        => $type === 'enterprise' ? ($data['hours_per_week'] ?? null) : null,
+    ]);
+
+    return response()->json([
+        'message' => 'Cours créé avec succès.',
+        'data' => [
+            'id'    => $course->id,
+            'slug'  => $course->slug,
+            'title' => $course->title,
+            'type'  => $course->type,
+        ],
+    ], 201);
+}
     // ========================================================
     // MISE À JOUR — PATCH /api/formateur/courses/{course}
     // ========================================================
 
-    // public function update(Request $request, Course $course)
-    // {
-    //     $user = $request->user();
-
-    //     // Sécurité : seul le propriétaire peut modifier
-    //     // ⚠️ ADAPTE la colonne si besoin (formateur_id / user_id)
-    //     if ($course->formateur_id !== $user->id && $user->role !== 'admin') {
-    //         return response()->json(['message' => 'Non autorisé.'], 403);
-    //     }
-
-    //     $data = $request->validate([
-    //         'title'             => ['sometimes', 'string', 'min:3', 'max:255'],
-    //         'subject'           => ['nullable', 'string', 'max:255'],
-    //         'category'          => ['nullable', 'string', 'max:255'],
-    //         'level'             => ['nullable', 'string', 'max:255'],
-    //         'diploma'           => ['nullable', 'string', 'max:255'],
-    //         'durationFull'      => ['nullable', 'string', 'max:255'],
-    //         'durationAlternance'=> ['nullable', 'string', 'max:255'],
-    //         'description'       => ['nullable', 'string', 'max:5000'],
-    //         'image'             => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-    //     ]);
-
-    //     if ($request->hasFile('image')) {
-    //         $path = $request->file('image')->store('courses', 'public');
-    //         $data['image'] = '/storage/' . $path;
-    //     }
-
-    //     $course->update($data);
-
-    //     return response()->json([
-    //         'message' => 'Cours mis à jour.',
-    //         'data'    => $course->fresh(),
-    //     ]);
-    // }
 
     public function update(Request $request, Course $course)
     {

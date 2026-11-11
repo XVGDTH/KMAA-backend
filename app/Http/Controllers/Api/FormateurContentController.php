@@ -37,11 +37,21 @@ class FormateurContentController extends Controller
 
         return response()->json([
             'data' => [
+                // 'course' => [
+                //     'id'    => $course->id,
+                //     'slug'  => $course->slug,
+                //     'title' => $course->title,
+                // ],
                 'course' => [
-                    'id'    => $course->id,
-                    'slug'  => $course->slug,
-                    'title' => $course->title,
-                ],
+    'id'                   => $course->id,
+    'slug'                 => $course->slug,
+    'title'                => $course->title,
+    'type'                 => $course->type,
+    'price'                => $course->price,
+    'enterpriseBasePrice'  => $course->enterprise_base_price,
+    'deliveryMode'         => $course->delivery_mode,
+    'hoursPerWeek'         => $course->hours_per_week,
+],
 
                 'modules' => $course->modules->map(function (Module $m) use ($moduleQuizzes) {
                     $moduleQuiz = $moduleQuizzes->get($m->id, collect())->first();

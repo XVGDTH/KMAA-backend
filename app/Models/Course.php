@@ -8,12 +8,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
-    protected $fillable = [
-        'slug', 'subject', 'category', 'title', 'description', 'level',
-        'diploma', 'duration_full', 'duration_alternance', 'image', 'image_alt',
-        'popular', 'badge', 'is_free', 'has_certificate', 'instructor_id', 'promotion_label',
-    ];
 
+//     protected $fillable = [
+//     'slug', 'subject', 'category', 'title', 'description', 'long_description',
+//     'level', 'diploma', 'duration_full', 'duration_alternance',
+//     'image', 'image_alt', 'popular', 'badge', 'is_free',
+//     'has_certificate', 'instructor_id', 'promotion_label',
+//     'price', 'promo_price', 'promo_code', 'provider', 'language', 'start_date',
+// ];
+protected $fillable = [
+    'slug', 'type', 'subject', 'category', 'title', 'description', 'long_description',
+    'level', 'diploma', 'duration_full', 'duration_alternance',
+    'image', 'image_alt', 'popular', 'badge', 'is_free',
+    'has_certificate', 'instructor_id', 'promotion_label',
+    'price', 'promo_price', 'promo_code', 'provider', 'language', 'start_date',
+    'delivery_mode', 'hours_per_week', 'modules_count', 'enterprise_base_price',
+];
     protected static function booted(): void
     {
         static::saving(function (Course $course) {
@@ -24,14 +34,53 @@ class Course extends Model
         });
     }
 
+    // protected function casts(): array
+    // {
+    //     return [
+    //         'popular'         => 'boolean',
+    //         // 'is_free'         => 'boolean',
+    //         'has_certificate' => 'boolean',
+    //                 'popular'         => 'boolean',
+    //     'is_free'         => 'boolean',
+    //     // 'has_certificate' => 'boolean',
+    //     'price'           => 'integer',
+    //     'promo_price'     => 'integer',
+    //     ];
+    // }
     protected function casts(): array
-    {
-        return [
-            'popular'         => 'boolean',
-            'is_free'         => 'boolean',
-            'has_certificate' => 'boolean',
-        ];
-    }
+{
+    return [
+        'popular'                => 'boolean',
+        'is_free'                => 'boolean',
+        'has_certificate'        => 'boolean',
+        'price'                  => 'integer',
+        'promo_price'            => 'integer',
+        'modules_count'          => 'integer',
+        'enterprise_base_price'  => 'integer',
+    ];
+}
+// ========================================================
+// SCOPES
+// ========================================================
+
+public function scopeIndividual($query)
+{
+    return $query->where('type', 'individual');
+}
+
+public function scopeEnterprise($query)
+{
+    return $query->where('type', 'enterprise');
+}
+
+// ========================================================
+// RELATIONS
+// ========================================================
+
+public function enterpriseLicenses()
+{
+    return $this->hasMany(EnterpriseLicense::class);
+}
 
     // ========================================================
     // RELATIONS
@@ -81,4 +130,6 @@ class Course extends Model
             ->whereNull('module_id')
             ->whereNull('chapter_id');
     }
+
+
 }

@@ -121,7 +121,8 @@ class DashboardController extends Controller
                          ->where('assignment_submissions.user_id', $user->id);
                 })
                 ->whereIn('chapters.course_id', $courseIds)
-                ->whereIn('sequences.type', ['devoir', 'tp'])
+                // ->whereIn('sequences.type', ['devoir', 'tp'])
+                ->whereIn('sequences.type', ['devoir', 'tp', 'td', 'cas_pratique'])
                 ->whereNull('assignment_submissions.id')   // pas encore soumis
                 ->orderBy('chapters.course_id')
                 ->orderBy('chapters.position')

@@ -64,35 +64,66 @@ class EnrollmentController extends Controller
     // + capacités de l'utilisateur connecté pour ce cours.
     // Résout le cours par SLUG ou par ID.
     // ============================================================
-    public function access(Request $request, string $slugOrId)
-    {
-        $user = $request->user();
-
-        if (! $user) {
-            return response()->json(['message' => 'Utilisateur non authentifié.'], 401);
-        }
-
-        $course = Course::where('slug', $slugOrId)->first()
-            ?? Course::find($slugOrId);
-
-        if (! $course) {
-            return response()->json(['message' => 'Cours introuvable.'], 404);
-        }
-
-        $level = $this->access->levelFor($user, $course);
-
-        $can = [];
-        foreach (AccessService::FEATURES as $feature => $required) {
-            $can[$feature] = $level >= $required;
-        }
-
-        return response()->json([
-            'data' => [
-                'level' => $level,
-                'can'   => $can,
-            ],
-        ]);
+public function access(Request $request, string $slugOrId)
+{
+    $user = $request->user();
+    if (! $user) {
+        return response()->json(['message' => 'Utilisateur non authentifié.'], 401);
     }
+
+    $course = Course::where('slug', $slugOrId)->first()
+        ?? Course::find($slugOrId);
+
+    if (! $course) {
+        return response()->json(['message' => 'Cours introuvable.'], 404);
+    }
+
+    $level = $this->access->levelFor($user, $course);
+
+    $can = [];
+    foreach (AccessService::FEATURES as $feature => $required) {
+        $can[$feature] = $level >= $required;
+    }
+
+    // ✅ Déterminer le rôle de l'utilisateur pour ce cours entreprise
+    $role = null;
+    $licenseId = null;
+
+    if ($course->type === 'enterprise') {
+        // 1. Est-il propriétaire ? (via son email dans la licence)
+        $license = \App\Models\EnterpriseLicense::where('course_id', $course->id)
+            ->where('status', 'active')
+            ->where('company_email', $user->email)
+            ->first();
+
+        if ($license) {
+            $role = 'owner';
+            $licenseId = $license->id;
+        } else {
+            // 2. Est-il membre ? (via la table enterprise_license_members)
+            $member = \App\Models\EnterpriseLicenseMember::where('email', $user->email)
+                ->whereHas('license', function ($q) use ($course) {
+                    $q->where('course_id', $course->id)
+                      ->where('status', 'active');
+                })
+                ->first();
+
+            if ($member) {
+                $role = 'member';
+                $licenseId = $member->license_id;
+            }
+        }
+    }
+
+    return response()->json([
+        'data' => [
+            'level' => $level,
+            'can'   => $can,
+            'role'  => $role,
+            'licenseId' => $licenseId,
+        ],
+    ]);
+}
 
     // ============================================================
     // GET /api/courses/{slugOrId}/my-plan — 🔒 Ma formule
@@ -231,14 +262,30 @@ class EnrollmentController extends Controller
     // ============================================================
     // PRIVÉ
     // ============================================================
+    // ============================================================
+    // PRIVÉ
+    // ============================================================
     private function format(Enrollment $e): array
     {
+        // ✅ On cherche le certificat associé à cette inscription
+        // On utilise DB::table car tu n'as pas défini de relation hasOne dans le modèle Enrollment
+        $certificate = \DB::table('certificates')
+            ->where('enrollment_id', $e->id)
+            ->first();
+
         return [
             'courseId'          => $e->course->slug,
+            'title'             => $e->course->title,
+            'image'             => $e->course->image,
+            'subject'           => $e->course->subject,
             'progressPercent'   => $e->progressPercent(),
             'enrolledAt'        => $e->enrolled_at->format('d M Y'),
             'lastAccessedAt'    => $e->last_accessed_at?->diffForHumans() ?? 'Jamais',
             'certificateIssued' => $e->certificate_issued,
+            
+            // ✅ NOUVEAU : On expose l'UUID et le type (certificat ou attestation) au frontend
+            'certificateUuid'   => $certificate?->uuid,
+            'certificateType'   => $e->course->diploma,
         ];
     }
 }

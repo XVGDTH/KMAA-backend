@@ -189,4 +189,97 @@ class LiveSessionController extends Controller
             ],
         ]);
     }
+
+
+        // POST /api/formateur/courses/{courseId}/live/schedule
+    // POST /api/formateur/courses/{courseId}/live/schedule
+public function scheduleMany(Request $request, string $courseId)
+{
+    $request->validate([
+        'dates' => 'required|array|min:1',
+        'dates.*' => 'required|date|after:now',
+    ]);
+
+    $course = Course::where('slug', $courseId)->first()
+        ?? Course::find($courseId);
+
+    if (! $course) {
+        return response()->json(['message' => 'Cours introuvable.'], 404);
+    }
+
+    $created = [];
+
+    foreach ($request->dates as $dateStr) {
+        // Créer la réunion Zoom
+        $meeting = $this->zoom->createMeeting(
+            topic: "Séance live — {$course->title}",
+            courseId: (string) $course->id,
+        );
+
+        if (! $meeting) {
+            continue; // On passe à la date suivante
+        }
+
+        $schedule = \App\Models\LiveSchedule::create([
+            'course_id'       => $course->id,
+            'instructor_id'   => $request->user()->id,
+            'scheduled_at'    => $dateStr,
+            'zoom_meeting_id' => $meeting['id'],
+            'zoom_join_url'   => $meeting['join_url'],
+            'zoom_start_url'  => $meeting['start_url'],
+            'zoom_password'   => $meeting['password'],
+        ]);
+
+        $created[] = $schedule;
+    }
+
+    return response()->json([
+        'message' => count($created) . ' séances programmées avec succès.',
+        'data'    => $created,
+    ]);
+}
+
+public function getSchedules(string $courseId)
+{
+    $course = Course::where('slug', $courseId)->first()
+        ?? Course::find($courseId);
+
+    if (! $course) {
+        return response()->json(['message' => 'Cours introuvable.'], 404);
+    }
+
+    $schedules = \App\Models\LiveSchedule::where('course_id', $course->id)
+        ->orderBy('scheduled_at')
+        ->get();
+
+    return response()->json(['data' => $schedules]);
+}
+
+
+    // ============================================================
+    // GET /api/formateur/live/upcoming-schedules
+    // Renvoie les 5 prochaines séances programmées du formateur
+    // ============================================================
+    public function upcomingSchedules(Request $request)
+    {
+        $user = $request->user();
+
+        // Récupérer tous les cours du formateur
+        $courseIds = \App\Models\Course::where('instructor_id', $user->id)->pluck('id');
+
+        $schedules = \App\Models\LiveSchedule::whereIn('course_id', $courseIds)
+            ->where('scheduled_at', '>=', now())
+            ->with('course:id,title,image') // ✅ On charge aussi l'image
+            ->orderBy('scheduled_at')
+            ->limit(5)
+            ->get()
+            ->map(fn($s) => [
+                'id' => $s->id,
+                'courseTitle' => $s->course?->title ?? 'Cours',
+                'courseImage' => $s->course?->image, // ✅ Ajout de l'image
+                'scheduledAt' => $s->scheduled_at?->toIso8601String(),
+            ]);
+
+        return response()->json(['data' => $schedules]);
+    }
 }

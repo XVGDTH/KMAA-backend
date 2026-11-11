@@ -16,11 +16,13 @@ class LiveSession extends Model
         'zoom_join_url',
         'zoom_password',
         'started_at',
+        'scheduled_at',
     ];
 
     protected $casts = [
         'is_live'    => 'boolean',
         'started_at' => 'datetime',
+        'scheduled_at' => 'datetime',
     ];
 
     /**
